@@ -1,0 +1,1 @@
+from .hasoffers import Hasoffers
