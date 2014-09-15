@@ -199,6 +199,7 @@ class Offer(object):
 
     def create(self, data, return_object=False):
         _params = {
+            'Method': 'create',
             'data': data,
             'return_object': return_object
         }
