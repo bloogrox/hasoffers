@@ -46,6 +46,9 @@ class Hasoffers(object):
         self.conversion = Conversion(self)
         self.affiliate = Affiliate(self)
         self.advertiser = Advertiser(self)
+        self.application = Application(self)
+        self.offer_pixel = OfferPixel(self)
+        self.offer_file = OfferFile(self)
 
     def call(self, target, params=None, return_model=None):
         if params is None: params = {}
@@ -110,8 +113,8 @@ class Hasoffers(object):
 
     def cast_error(self, result):
         if not 'response' in result or not 'status' in result['response']:
-            raise Error('We received an unexpected error: %r' % result)
-        if 'API usage exceeded rate limit':
+            return Error('We received an unexpected error: %r' % result)
+        if 'API usage exceeded rate limit' in result['response']['errorMessage']:
             return APIUsageExceededRateLimit(result['response']['errorMessage'])
         return Error(result['response']['errorMessage'])
 
@@ -194,6 +197,94 @@ class Offer(object):
             _params['status'] = status
         return self.master.call(self.target, _params, return_model='OfferPixel')
 
+    def create(self, data, return_object=False):
+        _params = {
+            'data': data,
+            'return_object': return_object
+        }
+        return self.master.call(self.target, _params)
+
+    def set_categories(self, id_, category_ids):
+        _params = {
+            'Method': 'setCategories',
+            'id': id_,
+            'category_ids': category_ids
+        }
+        return self.master.call(self.target, _params)
+
+    def set_affiliate_approval(self, offer_id, affiliate_id, status):
+        _params = {
+            'Method': 'setAffiliateApproval',
+            'id': offer_id,
+            'affiliate_id': affiliate_id,
+            'status': status
+        }
+        return self.master.call(self.target, _params)
+
+    def add_group(self, id_, group_id):
+        _params = {
+            'Method': 'addGroup',
+            'id': id_,
+            'group_id': group_id
+        }
+        return self.master.call(self.target, _params)
+
+    def add_target_country(self, id_, country_code, regions=None, region_code=None):
+        _params = {
+            'Method': 'addTargetCountry',
+            'id': id_,
+            'country_code': country_code,
+        }
+        if regions:
+            _params['regions'] = regions
+        if region_code:
+            _params['region_code'] = region_code
+        return self.master.call(self.target, _params)
+
+    def update_field(self, id_, field, value, return_object=False):
+        _params = {
+            'Method': 'updateField',
+            'id': id_,
+            'field': field,
+            'value': value,
+            'return_object': return_object
+        }
+        return self.master.call(self.target, _params)
+
+    def update(self, id_, data, return_object=False):
+        _params = {
+            'Method': 'update',
+            'id': id_,
+            'data': data,
+            'return_object': return_object
+        }
+        return self.master.call(self.target, _params)
+
+    def generate_tracking_pixel(self, id_, params=None, options=None):
+        _params = {
+            'Method': 'generateTrackingPixel',
+            'offer_id': id_
+        }
+        if params:
+            _params['params'] = params
+        if options:
+            _params['options'] = options
+        return self.master.call(self.target, _params)
+
+    def generate_tracking_link(self, id_, affiliate_id, params=None, options=None, optionalFields=None):
+        _params = {
+            'Method': 'generateTrackingLink',
+            'offer_id': id_,
+            'affiliate_id': affiliate_id
+        }
+        if params:
+            _params['params'] = params
+        if options:
+            _params['options'] = options
+        if optionalFields:
+            _params['optionalFields'] = optionalFields
+        return self.master.call(self.target, _params)
+
 
 class Conversion(object):
 
@@ -229,14 +320,13 @@ class Conversion(object):
         }
         return self.master.call(self.target, _params)
 
-    def update(self, id, data, return_object=None, ad_id=None, transaction_id=None, should_standardize=None):
+    def update(self, id, data, return_object=False, ad_id=None, transaction_id=None, should_standardize=None):
         _params = {
             'Method': 'update',
             'id': id,
-            'data': data
+            'data': data,
+            'return_object': return_object
         }
-        if return_object:
-            _params['return_object'] = return_object
         if ad_id:
             _params['ad_id'] = ad_id
         if transaction_id:
@@ -327,6 +417,47 @@ class Advertiser(object):
         return self.master.call(self.target, _params)
 
 
+class Application(object):
+
+    target = 'Application'
+
+    def __init__(self, master):
+        self.master = master
+
+    def add_offer_group(self, data):
+        _params = {
+            'Method': 'addOfferGroup',
+            'data': data
+        }
+        return self.master.call(self.target, _params)
+
+
+class OfferPixel(object):
+
+    target = 'OfferPixel'
+
+    def __init__(self, master):
+        self.master = master
+
+    def create(self, data, return_object=None):
+        _params = {
+            'Method': 'create',
+            'data': data
+        }
+        if return_object:
+            _params['return_object'] = return_object
+        return self.master.call(self.target, _params)
+
+
+class OfferFile(object):
+
+    target = 'OfferFile'
+
+    def __init__(self, master):
+        self.master = master
+
+
+#-----------------------------------------------------------------
 HASOFFERS_ENTITY_MAP = {
     'Offer': models.Offer,
     'Advertiser': models.Advertiser,
