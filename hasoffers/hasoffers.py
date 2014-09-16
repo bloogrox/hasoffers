@@ -50,27 +50,16 @@ class Hasoffers(object):
         self.offer_pixel = OfferPixel(self)
         self.offer_file = OfferFile(self)
 
-    def call(self, target, params=None, return_model=None):
-        if params is None: params = {}
+    def call(self, target, params=None, return_model=None, request_method='GET', request_data={}):
+        if params is None:
+            params = {}
         params['NetworkId'] = self.network_id
         params['NetworkToken'] = self.network_token
-
-        # params = {
-        #     'NetworkToken': self.NETWORK_TOKEN,
-        #     'NetworkId': self.NETWORK_ID,
-        #     'Method': 'findAll',
-        #     'filters': filters,
-        #     'sort': sort,
-        #     'limit': limit,
-        #     'page': page,
-        #     'fields': fields,
-        #     'contain[]': contain
-        # }
 
         base_url = ROOT + '%s.json?' % target
         url = base_url + http_build_query(params)
 
-        request = Request(url, params, target, return_model=return_model)
+        request = Request(url, params, target, return_model=return_model, method=request_method, **request_data)
 
         return self.send(request)
 
@@ -78,7 +67,13 @@ class Hasoffers(object):
         self.log('Executing %s' % request.url)
         request.attempts += 1
         start = time.time()
-        r = requests.get(request.url)
+        if request.method == 'GET':
+            r = requests.get(request.url)
+        elif request.method == 'POST':
+            _kwargs = dict()
+            if request.files:
+                _kwargs = {'files': request.files}
+            r = requests.post(request.url, **_kwargs)
         complete_time = time.time() - start
         response_body = r.text
         self.log('Received %s in %.2fms: %s' % (r.status_code, complete_time * 1000, r.text))
@@ -128,12 +123,14 @@ class Hasoffers(object):
 
 class Request(object):
 
-    def __init__(self, url, params, target, return_model=None):
+    def __init__(self, url, params, target, return_model=None, method='GET', files=None):
         self.url = url
         self.params = params
         self.target = target
         self.return_model = return_model
         self.attempts = 0
+        self.method = method
+        self.files = files
 
 
 class Response(object):
@@ -440,13 +437,12 @@ class OfferPixel(object):
     def __init__(self, master):
         self.master = master
 
-    def create(self, data, return_object=None):
+    def create(self, data, return_object=False):
         _params = {
             'Method': 'create',
-            'data': data
+            'data': data,
+            'return_object': return_object
         }
-        if return_object:
-            _params['return_object'] = return_object
         return self.master.call(self.target, _params)
 
 
@@ -457,6 +453,14 @@ class OfferFile(object):
     def __init__(self, master):
         self.master = master
 
+    def create(self, data, return_object=False):
+        _params = {
+            'Method': 'create',
+            'data': data,
+            'return_object': return_object
+        }
+        files = {data['filename']: open(data['filename'], 'rb')}
+        return self.master.call(self.target, _params, request_method='POST', request_data={'files': files})
 
 #-----------------------------------------------------------------
 HASOFFERS_ENTITY_MAP = {
