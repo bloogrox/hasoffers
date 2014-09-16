@@ -453,13 +453,13 @@ class OfferFile(object):
     def __init__(self, master):
         self.master = master
 
-    def create(self, data, return_object=False):
+    def create(self, data, filepath, return_object=False):
         _params = {
             'Method': 'create',
             'data': data,
             'return_object': return_object
         }
-        files = {data['filename']: open(data['filename'], 'rb')}
+        files = {data['filename']: open(filepath, 'rb')}
         return self.master.call(self.target, _params, request_method='POST', request_data={'files': files})
 
 #-----------------------------------------------------------------
