@@ -414,6 +414,14 @@ class Advertiser(object):
 
         return self.master.call(self.target, _params)
 
+    def find_by_id(self, id_, fields=[], contain=[]):
+        _params = {
+            'Method': 'findById',
+            'id': id_,
+            'fields': fields,
+            'contain': contain
+        }
+        return self.master.call(self.target, _params)
 
 class Application(object):
 
@@ -496,7 +504,8 @@ METHODS_MAPPING = {
         'getOfferPixels': COLLECTION
     },
     'Advertiser': {
-        'findAll': COLLECTION
+        'findAll': COLLECTION,
+        'findById': OBJECT,
     }
 }
 
