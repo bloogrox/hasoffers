@@ -49,6 +49,7 @@ class Hasoffers(object):
         self.application = Application(self)
         self.offer_pixel = OfferPixel(self)
         self.offer_file = OfferFile(self)
+        self.affiliate_user = AffiliateUser(self)
 
     def call(self, target, params=None, return_model=None, request_method='GET', request_data={}):
         if params is None:
@@ -393,6 +394,33 @@ class Affiliate(object):
             'id': id_,
             'note': note
         }
+        return self.master.call(self.target, _params)
+
+
+class AffiliateUser(object):
+
+    target = 'AffiliateUser'
+
+    def __init__(self, master):
+        self.master = master
+
+    def find_all(self, filters=None, sort=None, limit=None, page=None, fields=None, contain=None):
+        _params = {
+            'Method': 'findAll'
+        }
+        if filters:
+            _params['filters'] = filters
+        if sort:
+            _params['sort'] = sort
+        if limit:
+            _params['limit'] = limit
+        if page:
+            _params['page'] = page
+        if fields:
+            _params['fields'] = fields
+        if contain:
+            _params['contain'] = contain
+
         return self.master.call(self.target, _params)
 
 
