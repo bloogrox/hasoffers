@@ -387,6 +387,14 @@ class Affiliate(object):
             _params['status'] = status
         return self.master.call(self.target, _params, 'OfferPixel')
 
+    def add_account_note(self, id_, note):
+        _params = {
+            'Method': 'addAccountNote',
+            'id': id_,
+            'note': note
+        }
+        return self.master.call(self.target, _params)
+
 
 class Advertiser(object):
 
